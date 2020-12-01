@@ -356,14 +356,20 @@ public class CohortDefinitionService extends AbstractDaoService {
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public List<CohortMetadataDTO> getCohortDefinitionList() {
+	public List<CohortMetadataDTO> getCohortDefinitionList(@QueryParam("q") String query) {
 
-		List<CohortDefinition> definitions = cohortDefinitionRepository.list();
+		List<CohortDefinition> definitions;
+
+		if(query==null) {
+			definitions = cohortDefinitionRepository.list();
+		} else {
+			definitions = cohortDefinitionRepository.findAllByNameStartsWith(query);
+		}
 
 		return definitions.stream()
-						.map(def -> conversionService.convert(def, CohortMetadataDTO.class))
-						.collect(Collectors.toList());
-	}
+			.map(def -> conversionService.convert(def, CohortMetadataDTO.class))
+			.collect(Collectors.toList());	
+}
 
 	/**
 	 * Creates the cohort definition
