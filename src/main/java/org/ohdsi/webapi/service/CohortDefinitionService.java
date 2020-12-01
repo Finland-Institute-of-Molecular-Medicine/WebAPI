@@ -408,8 +408,15 @@ public class CohortDefinitionService extends AbstractDaoService implements HasTa
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public List<CohortMetadataDTO> getCohortDefinitionList() {
-		List<CohortDefinition> definitions = cohortDefinitionRepository.list();
+	public List<CohortMetadataDTO> getCohortDefinitionList(@QueryParam("q") String query) {
+		List<CohortDefinition> definitions;
+
+		if(query==null) {
+			definitions = cohortDefinitionRepository.list();
+		} else {
+			definitions = cohortDefinitionRepository.findAllByNameStartsWith(query);
+		}
+
 		return definitions.stream()
 						.filter(!defaultGlobalReadPermissions ? entity -> permissionService.hasReadAccess(entity) : entity -> true)
 						.map(def -> {
