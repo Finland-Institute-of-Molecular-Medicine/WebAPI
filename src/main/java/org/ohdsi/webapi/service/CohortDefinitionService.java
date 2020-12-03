@@ -40,6 +40,7 @@ import org.ohdsi.webapi.cohortdefinition.CleanupCohortTasklet;
 import org.ohdsi.webapi.cohortdefinition.CohortDefinition;
 import org.ohdsi.webapi.cohortdefinition.CohortDefinitionDetails;
 import org.ohdsi.webapi.cohortdefinition.CohortDefinitionRepository;
+import org.ohdsi.webapi.cohortdefinition.CohortDefinitionDetailsRepository;
 import org.ohdsi.webapi.cohortdefinition.CohortGenerationInfo;
 import org.ohdsi.webapi.cohortdefinition.InclusionRuleReport;
 import org.ohdsi.webapi.cohortdefinition.dto.CohortDTO;
@@ -153,6 +154,9 @@ public class CohortDefinitionService extends AbstractDaoService implements HasTa
 
 	@Autowired
 	private CohortDefinitionRepository cohortDefinitionRepository;
+
+	@Autowired
+	private CohortDefinitionDetailsRepository cohortDefinitionDetailsRepository;
 
 	@Autowired
 	private JobBuilderFactory jobBuilders;
@@ -490,6 +494,25 @@ public class CohortDefinitionService extends AbstractDaoService implements HasTa
 			CohortDefinition d = this.cohortDefinitionRepository.findOneWithDetail(id);
 			ExceptionUtils.throwNotFoundExceptionIfNull(d, String.format("There is no cohort definition with id = %d.", id));
 			return conversionService.convert(d, CohortRawDTO.class);
+		});
+	}
+
+	/**
+	 * Returns the cohort definitions for the given hash
+	 *
+	 * @param id The cohort detail hash
+	 * @return List of CohortDefinition
+	 */
+	@GET
+	@Path("/byhash/{hash}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<CohortRawDTO> getCohortDefinitionsRawByHash(@PathParam("hash") final int hash) {
+
+		return getTransactionTemplate().execute(transactionStatus -> {
+			List<CohortDefinitionDetails> details = this.cohortDefinitionDetailsRepository.findByHashCode(hash);
+			return details.stream()
+				.map(def -> conversionService.convert(def.getCohortDefinition(), CohortRawDTO.class))
+				.collect(Collectors.toList());
 		});
 	}
 
