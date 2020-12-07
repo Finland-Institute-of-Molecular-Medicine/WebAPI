@@ -94,6 +94,9 @@ public class CohortDefinitionService extends AbstractDaoService {
   private CohortDefinitionRepository cohortDefinitionRepository;
 
   @Autowired
+  private CohortDefinitionDetailsRepository cohortDefinitionDetailsRepository;
+
+  @Autowired
   private JobBuilderFactory jobBuilders;
 
   @Autowired
@@ -325,12 +328,38 @@ public class CohortDefinitionService extends AbstractDaoService {
   @GET
   @Path("/")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<CohortMetadataDTO> getCohortDefinitionList() {
+  public List<CohortMetadataDTO> getCohortDefinitionList(@QueryParam("q") String query) {
 
-    List<CohortDefinition> definitions = cohortDefinitionRepository.list();
+	List<CohortDefinition> definitions;
+
+	if(query==null) {
+		definitions = cohortDefinitionRepository.list();
+	} else {
+		definitions = cohortDefinitionRepository.findAllByNameStartsWith(query);
+	}
+
     return definitions.stream()
             .map(def -> conversionService.convert(def, CohortMetadataDTO.class))
             .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the cohort definitions for the given hash
+   *
+   * @param id The cohort detail hash
+   * @return List of CohortDefinition
+   */
+  @GET
+  @Path("/byhash/{hash}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<CohortRawDTO> getCohortDefinitionsRawByHash(@PathParam("hash") final int hash) {
+
+	return getTransactionTemplate().execute(transactionStatus -> {
+			List<CohortDefinitionDetails> details = this.cohortDefinitionDetailsRepository.findByHashCode(hash);
+			return details.stream()
+					.map(def -> conversionService.convert(def.getCohortDefinition(), CohortRawDTO.class))
+					.collect(Collectors.toList());  
+	});
   }
 
   /**
