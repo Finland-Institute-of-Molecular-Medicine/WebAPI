@@ -23,11 +23,20 @@ RUN mvn package ${MAVEN_PARAMS} \
     -Dgit.branch=${GIT_BRANCH} \
     -Dgit.commit.id.abbrev=${GIT_COMMIT_ID_ABBREV} \
     -P${MAVEN_PROFILE} \
+    -s src/settings.xml \
     && mkdir war \
     && mv target/WebAPI.war war \
     && cd war \
     && jar -xf WebAPI.war \
     && rm WebAPI.war
+
+# BigQuery JDBC Driver
+ARG SIMBA_JDBC_VERSION=1.3.0.1001
+
+RUN curl -Lo /tmp/SimbaJDBC4BQ.zip \
+    https://storage.googleapis.com/simba-bq-release/jdbc/SimbaJDBCDriverforGoogleBigQuery42_${SIMBA_JDBC_VERSION}.zip && \
+    unzip -o -j /tmp/SimbaJDBC4BQ.zip '*.jar' -d /code/war/WEB-INF/lib/ && \
+    rm /tmp/SimbaJDBC4BQ.zip
 
 # OHDSI WebAPI and ATLAS web application running as a Spring Boot application with Java 8
 FROM index.docker.io/library/eclipse-temurin:8-jre
