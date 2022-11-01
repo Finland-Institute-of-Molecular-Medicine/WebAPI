@@ -28,6 +28,7 @@ import org.ohdsi.webapi.shiro.realms.JwtAuthRealm;
 import org.ohdsi.webapi.shiro.realms.KerberosAuthRealm;
 import org.ohdsi.webapi.shiro.realms.LdapRealm;
 import org.ohdsi.webapi.user.importer.providers.LdapProvider;
+import org.ohdsi.webapi.util.ResourceUtils;
 import org.opensaml.saml.common.xml.SAMLConstants;
 import org.pac4j.cas.client.CasClient;
 import org.pac4j.cas.config.CasConfiguration;
@@ -178,6 +179,9 @@ public class AtlasRegularSecurity extends AtlasSecurity {
     @Value("${security.saml.callbackUrl}")
     private String samlCallbackUrl;
 
+    @Value("${security.saml.maximumAuthenticationLifetime}")
+    private int maximumAuthenticationLifetime;
+
     @Autowired
     @Qualifier("activeDirectoryProvider")
     private LdapProvider adLdapProvider;
@@ -288,7 +292,6 @@ public class AtlasRegularSecurity extends AtlasSecurity {
 
         filters.put(SEND_TOKEN_IN_URL, new SendTokenInUrlFilter(this.oauthUiCallback));
         filters.put(SEND_TOKEN_IN_HEADER, new SendTokenInHeaderFilter());
-        filters.put(SEND_TOKEN_IN_REDIRECT, new SendTokenInRedirectFilter(redirectUrl));
 
         filters.put(RUN_AS, new RunAsFilter(userRepository));
 
@@ -406,7 +409,7 @@ public class AtlasRegularSecurity extends AtlasSecurity {
         }
 
         if (this.openidAuthEnabled) {
-            filterChainBuilder.addRestPath("/user/login/openid", FORCE_SESSION_CREATION, OIDC_AUTH, UPDATE_TOKEN, SEND_TOKEN_IN_REDIRECT);
+            filterChainBuilder.addRestPath("/user/login/openid", FORCE_SESSION_CREATION, OIDC_AUTH, UPDATE_TOKEN, SEND_TOKEN_IN_URL);
         }
 
         if (this.googleAuthEnabled) {
@@ -451,6 +454,7 @@ public class AtlasRegularSecurity extends AtlasSecurity {
         if (this.samlEnabled) {
             filterChainBuilder
                 .addPath("/user/login/saml", SSL, CORS, FORCE_SESSION_CREATION, SAML_AUTHC, UPDATE_TOKEN, SEND_TOKEN_IN_URL)
+                .addPath("/user/login/samlForce", SSL, CORS, FORCE_SESSION_CREATION, SAML_AUTHC_FORCE, UPDATE_TOKEN, SEND_TOKEN_IN_URL)
                 .addPath("/user/saml/callback", SSL, HANDLE_SAML, UPDATE_TOKEN, SEND_TOKEN_IN_URL);
         }
         
@@ -506,14 +510,35 @@ public class AtlasRegularSecurity extends AtlasSecurity {
     }
 
     private void setUpSaml(Map<FilterTemplates, Filter> filters) {
-      try {
+        try {
+            SAML2Client client = setUpSamlClient(filters, SAML_AUTHC, false);
+            SAML2Client clientForce = setUpSamlClient(filters, SAML_AUTHC_FORCE, true);
+
+            SamlHandleFilter samlHandleFilter = new SamlHandleFilter(client, clientForce, this.oauthUiCallback);
+            filters.put(HANDLE_SAML, samlHandleFilter);
+
+            samlEnabled = true;
+        } catch (Exception e) {
+            samlEnabled = false;
+            filters.remove(SAML_AUTHC_FORCE);
+            filters.remove(SAML_AUTHC);
+            filters.remove(HANDLE_SAML);
+            logger.error("Failed to initlize SAML filters: " + e.getMessage());
+        }
+    }
+
+    private SAML2Client setUpSamlClient(Map<FilterTemplates, Filter> filters, FilterTemplates template, boolean isForcedAuth) {
         final SAML2Configuration cfg = new SAML2Configuration(
-                keyStoreFile,
+                ResourceUtils.mapPathToResource(keyStoreFile),
+                alias,
+                null,
                 keyStorePassword,
                 privateKeyPassword,
-                metadataLocation);
-        cfg.setMaximumAuthenticationLifetime(3600);
+                ResourceUtils.mapPathToResource(metadataLocation));
+
+        cfg.setMaximumAuthenticationLifetime(this.maximumAuthenticationLifetime);
         cfg.setServiceProviderEntityId(identityProviderEntityId);
+        cfg.setForceAuth(isForcedAuth);
 
         cfg.setServiceProviderMetadataPath(spMetadataLocation);
         cfg.setAuthnRequestBindingType(SAMLConstants.SAML2_REDIRECT_BINDING_URI);
@@ -524,17 +549,9 @@ public class AtlasRegularSecurity extends AtlasSecurity {
         SecurityFilter samlAuthFilter = new SecurityFilter();
         samlAuthFilter.setConfig(samlCfg);
         samlAuthFilter.setClients("saml2Client");
-        filters.put(SAML_AUTHC, samlAuthFilter);
+        filters.put(template, samlAuthFilter);
 
-        SamlHandleFilter samlHandleFilter = new SamlHandleFilter(saml2Client);
-        filters.put(HANDLE_SAML, samlHandleFilter);
-        samlEnabled = true;
-      } catch (Exception e) {
-        samlEnabled = false;
-        filters.remove(SAML_AUTHC);
-        filters.remove(HANDLE_SAML);
-        logger.error("Failed to initlize SAML filters: " + e.getMessage());
-      }
+        return saml2Client;
     }
 
     private Google2Client getGoogle2Client() {

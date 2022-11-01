@@ -3,20 +3,18 @@ package org.ohdsi.webapi.feanalysis;
 import org.ohdsi.analysis.cohortcharacterization.design.FeatureAnalysis;
 import org.ohdsi.analysis.cohortcharacterization.design.StandardFeatureAnalysisDomain;
 import org.ohdsi.webapi.Pagination;
+import org.ohdsi.webapi.cohortcharacterization.dto.CcShortDTO;
 import org.ohdsi.webapi.common.OptionDTO;
 import org.ohdsi.webapi.conceptset.ConceptSetExport;
-import org.ohdsi.webapi.feanalysis.domain.FeAnalysisAggregateEntity;
-import org.ohdsi.webapi.feanalysis.domain.FeAnalysisEntity;
-import org.ohdsi.webapi.feanalysis.domain.FeAnalysisWithCriteriaEntity;
-import org.ohdsi.webapi.feanalysis.domain.FeAnalysisWithDistributionCriteriaEntity;
-import org.ohdsi.webapi.feanalysis.domain.FeAnalysisWithPrevalenceCriteriaEntity;
-import org.ohdsi.webapi.feanalysis.domain.FeAnalysisWithStringEntity;
+import org.ohdsi.webapi.feanalysis.domain.*;
 import org.ohdsi.webapi.feanalysis.dto.FeAnalysisAggregateDTO;
 import org.ohdsi.webapi.feanalysis.dto.FeAnalysisDTO;
 import org.ohdsi.webapi.feanalysis.dto.FeAnalysisShortDTO;
+import org.ohdsi.webapi.security.PermissionService;
 import org.ohdsi.webapi.util.ExportUtil;
 import org.ohdsi.webapi.util.HttpUtils;
 import org.ohdsi.webapi.util.NameUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,22 +46,41 @@ public class FeAnalysisController {
 
     private FeAnalysisService service;
     private ConversionService conversionService;
+    private PermissionService permissionService;
 
     FeAnalysisController(
             final FeAnalysisService service,
-            final ConversionService conversionService) {
+            final ConversionService conversionService,
+            PermissionService permissionService) {
         this.service = service;
         this.conversionService = conversionService;
+        this.permissionService = permissionService;
     }
 
+    /**
+     * Get a pagable list of all feature analyses available in WebAPI
+     * @summary Feature analyses in WebAPI
+     * @param pageable
+     * @return
+     */
     @GET
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Page<FeAnalysisShortDTO> list(@Pagination Pageable pageable) {
-        return service.getPage(pageable).map(this::convertFeAnaysisToShortDto);
+        return service.getPage(pageable).map(entity -> {
+            FeAnalysisShortDTO dto = convertFeAnaysisToShortDto(entity);
+            permissionService.fillWriteAccess(entity, dto);
+            return dto;
+        });
     }
 
+    /**
+     * Does a feature analysis name already exist?
+     * @param id The id for a new feature analysis that does not already exist
+     * @param name The desired name for the new feature analysis
+     * @return 1 if the name conflicts with an existing feature analysis name and 0 otherwise
+     */
     @GET
     @Path("/{id}/exists")
     @Produces(MediaType.APPLICATION_JSON)
@@ -72,6 +89,10 @@ public class FeAnalysisController {
         return service.getCountFeWithSameName(id, name);
     }
 
+    /**
+     * Feature analysis domains
+     * @return Feature analysis domains such as DRUG, DRUG_ERA, MEASUREMENT, etc.
+     */
     @GET
     @Path("/domains")
     @Produces(MediaType.APPLICATION_JSON)
@@ -85,6 +106,11 @@ public class FeAnalysisController {
         return options;
     }
 
+    /**
+     * Create a new feature analysis
+     * @param dto Feature analysis specification
+     * @return
+     */
     @POST
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,6 +120,12 @@ public class FeAnalysisController {
         return convertFeAnalysisToDto(createdEntity);
     }
 
+    /**
+     * Update an existing feature analysis
+     * @param feAnalysisId ID of Feature analysis to update
+     * @param dto Feature analysis specification
+     * @return
+     */
     @PUT
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -103,6 +135,10 @@ public class FeAnalysisController {
         return convertFeAnalysisToDto(updatedEntity);
     }
 
+    /**
+     * Delete a feature analysis
+     * @param feAnalysisId ID of feature analysis to delete
+     */
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -111,6 +147,11 @@ public class FeAnalysisController {
         service.deleteAnalysis(entity);
     }
 
+    /**
+     * Get data about a specific feature analysis
+     * @param feAnalysisId ID of feature analysis to retrieve
+     * @return ID, type, name domain, description, etc of feature analysis
+     */
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -135,6 +176,11 @@ public class FeAnalysisController {
       }
     }
 
+    /**
+     * Create a copy of a feature analysis
+     * @param feAnalysisId ID of feature analysis to copy
+     * @return The design specification of the new copy
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/copy")
@@ -149,7 +195,6 @@ public class FeAnalysisController {
             case CRITERIA_SET:
                 saved = service.createCriteriaAnalysis((FeAnalysisWithCriteriaEntity) feAnalysisForCopy);
                 break;
-            case PRESET:
             case CUSTOM_FE:
                 saved = service.createAnalysis(feAnalysisForCopy);
                 break;
@@ -174,8 +219,23 @@ public class FeAnalysisController {
                     default:
                         throw new IllegalArgumentException();
                 }
+
+                // deep copy of criteria list...
+                final List<FeAnalysisCriteriaEntity> criteriaList = new ArrayList<>();
+                ((FeAnalysisWithCriteriaEntity) entity).getDesign().forEach(c -> {
+                    final FeAnalysisCriteriaEntity criteria = createCriteriaEntity((FeAnalysisCriteriaEntity) c);
+                    criteria.setName(((FeAnalysisCriteriaEntity) c).getName());
+                    criteria.setExpressionString(((FeAnalysisCriteriaEntity) c).getExpressionString());
+                    criteria.setAggregate(((FeAnalysisCriteriaEntity) c).getAggregate());
+                    criteriaList.add(criteria);
+                });
+                entityForCopy.setDesign(criteriaList);
+
+                // ...and concept sets
+                final FeAnalysisConcepsetEntity concepsetEntity = new FeAnalysisConcepsetEntity();
+                concepsetEntity.setRawExpression(((FeAnalysisWithCriteriaEntity) entity).getConceptSetEntity().getRawExpression());
+                ((FeAnalysisWithCriteriaEntity) entityForCopy).setConceptSetEntity(concepsetEntity);
                 break;
-            case PRESET:
             case CUSTOM_FE:
                 entityForCopy = new FeAnalysisWithStringEntity((FeAnalysisWithStringEntity) entity);
                 break;
@@ -185,18 +245,25 @@ public class FeAnalysisController {
         entityForCopy.setId(null);
         entityForCopy.setName(
                 NameUtils.getNameForCopy(entityForCopy.getName(), this::getNamesLike, service.findByName(entityForCopy.getName())));
+        entityForCopy.setCreatedBy(null);
+        entityForCopy.setCreatedDate(null);
         entityForCopy.setModifiedBy(null);
         entityForCopy.setModifiedDate(null);
-
         return entityForCopy;
     }
 
+    /**
+     * Get aggregation functions used in feature analyses
+     * @return
+     */
     @GET
     @Path("/aggregates")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<FeAnalysisAggregateDTO> listAggregates() {
-        return service.findAggregates().stream()
+        List<FeAnalysisAggregateDTO> result = service.findAggregates().stream()
                 .map(this::convertFeAnalysisAggregateToDto)
                 .collect(Collectors.toList());
+        return result;
     }
 
     private FeAnalysisShortDTO convertFeAnaysisToShortDto(final FeatureAnalysis entity) {
@@ -210,8 +277,18 @@ public class FeAnalysisController {
     private List<String> getNamesLike(String copyName) {
         return service.getNamesLike(copyName);
     }
+
     private FeAnalysisAggregateDTO convertFeAnalysisAggregateToDto(final FeAnalysisAggregateEntity entity) {
         return conversionService.convert(entity, FeAnalysisAggregateDTO.class);
     }
 
+    private FeAnalysisCriteriaEntity createCriteriaEntity(FeAnalysisCriteriaEntity basis) {
+        if (basis instanceof FeAnalysisWindowedCriteriaEntity) {
+            return new FeAnalysisWindowedCriteriaEntity();
+        } else if (basis instanceof FeAnalysisDemographicCriteriaEntity) {
+            return new FeAnalysisDemographicCriteriaEntity();
+        } else {
+            return new FeAnalysisCriteriaGroupEntity();
+        }
+    }
 }

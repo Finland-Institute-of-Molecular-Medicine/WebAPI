@@ -49,7 +49,7 @@ public abstract class AtlasSecurity extends Security {
   public static final String PERMISSIONS_ATTRIBUTE = "PERMISSIONS";
 
   public static final String AUTH_CLIENT_SAML = "AUTH_CLIENT_SAML";
-  public static final String AUTH_CLIENT_ALL = "*";
+  public static final String AUTH_CLIENT_ALL = "ALL";
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -102,6 +102,7 @@ public abstract class AtlasSecurity extends Security {
             // DDL service
             .addRestPath("/ddl/results")
             .addRestPath("/ddl/cemresults")
+            .addRestPath("/ddl/extra")
 
             .addRestPath("/saml/saml-metadata")
             .addRestPath("/saml/slo")
@@ -110,6 +111,10 @@ public abstract class AtlasSecurity extends Security {
             .addRestPath("/executionservice/callbacks/**")
 
             .addRestPath("/permission/access/**/*", JWT_AUTHC) // Authorization check is done inside controller
+
+            //i18n
+            .addRestPath("/i18n")
+            .addRestPath("/i18n/**")
 
             .addProtectedRestPath("/**/*");
   }

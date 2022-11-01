@@ -14,7 +14,11 @@ OHDSI WebAPI contains all OHDSI RESTful services that can be called from OHDSI a
 
 ## Technology
 
-OHDSI WebAPI is a Java 8 web application that utilizes a database (PostgreSQL, SQL Server or Oracle) for storage.
+OHDSI WebAPI is a Java 8 web application that utilizes a PostgreSQL database for storage.
+
+## API Documentation
+
+The API Documentation is found at [http://webapidoc.ohdsi.org/](http://webapidoc.ohdsi.org/)
 
 ## System Requirements & Installation
 
@@ -25,13 +29,17 @@ Documentation can be found a the [Web API Installation Guide](https://github.com
 The following parameters are used:
 
 - `security.saml.idpMetadataLocation=classpath:saml/dev/idp-metadata.xml` - path to metadata used by identity provider
-- `security.saml.metadataLocation=saml/dev/sp-metadata.xml` - service provider metedata path
+- `security.saml.metadataLocation=saml/dev/sp-metadata.xml` - service provider metadata path
 - `security.saml.keyManager.keyStoreFile=classpath:saml/samlKeystore.jks` - path to keystore
 - `security.saml.keyManager.storePassword=nalle123` - keystore password
 - `security.saml.keyManager.passwords.arachnenetwork=nalle123` - private key password
 - `security.saml.keyManager.defaultKey=apollo` - keystore alias
 - `security.saml.sloUrl=https://localhost:8443/cas/logout` - identity provider logout URL
 - `security.saml.callbackUrl=http://localhost:8080/WebAPI/user/saml/callback` - URL called from identity provider after login
+
+Sample idp metadata and sp metadata config files for okta:
+- `saml/dev/idp-metadata-okta.xml`
+- `saml/dev/sp-metadata-okta.xml`
 
 ## Managing auth providers
 
@@ -72,5 +80,3 @@ It was chosen to use embedded PG instead of H2 for unit tests since H2 doesn't s
 
 ## License
 OHDSI WebAPI is licensed under Apache License 2.0
-
-

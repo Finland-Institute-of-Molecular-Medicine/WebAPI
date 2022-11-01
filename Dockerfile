@@ -1,23 +1,35 @@
-FROM maven:3.6-jdk-8 as builder
+FROM maven:3.6-jdk-11 as builder
 
 WORKDIR /code
 
-ARG MAVEN_PROFILE=webapi-postgresql
+ARG MAVEN_PROFILE=webapi-docker
+
+ARG OPENTELEMETRY_JAVA_AGENT_VERSION=1.17.0
+RUN curl -LSsO https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OPENTELEMETRY_JAVA_AGENT_VERSION}/opentelemetry-javaagent.jar
 
 # Download dependencies
 COPY pom.xml /code/
-COPY .git /code/.git
-COPY src /code/src
+RUN mkdir .git \
+    && mvn package \
+     -P${MAVEN_PROFILE}
+
+ARG GIT_BRANCH=unknown
+ARG GIT_COMMIT_ID_ABBREV=unknown
+
 # Compile code and repackage it
-RUN mvn package -P${MAVEN_PROFILE} -DskipTests \
+COPY src /code/src
+RUN mvn package \
+    -Dgit.branch=${GIT_BRANCH} \
+    -Dgit.commit.id.abbrev=${GIT_COMMIT_ID_ABBREV} \
+    -P${MAVEN_PROFILE} \
     && mkdir war \
     && mv target/WebAPI.war war \
     && cd war \
-    && unzip WebAPI.war \
+    && jar -xf WebAPI.war \
     && rm WebAPI.war
 
 # OHDSI WebAPI and ATLAS web application running as a Spring Boot application with Java 11
-FROM openjdk:11-jre-slim
+FROM openjdk:8-jre-slim
 
 MAINTAINER Lee Evans - www.ltscomputingllc.com
 
@@ -32,6 +44,8 @@ ENV DEFAULT_JAVA_OPTS="-Djava.security.egd=file:///dev/./urandom"
 
 # set working directory to a fixed WebAPI directory
 WORKDIR /var/lib/ohdsi/webapi
+
+COPY --from=builder /code/opentelemetry-javaagent.jar .
 
 # deploy the just built OHDSI WebAPI war file
 # copy resources in order of fewest changes to most changes.

@@ -6,25 +6,40 @@
   <groupId>org.ohdsi</groupId>
   <artifactId>WebAPI</artifactId>
   <packaging>war</packaging>
-  <version>2.8.0-SNAPSHOT</version>
+  <version>2.12.0</version>
   <name>WebAPI</name>
   <properties>
     <build.number>${BUILD_NUMBER}</build.number>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Spring Boot manages spring.version as well -->
-    <spring.boot.version>1.5.20.RELEASE</spring.boot.version>
+    <spring.boot.version>1.5.22.RELEASE</spring.boot.version>
+    <log4j2.version>2.17.1</log4j2.version>
     <flyway.version>4.2.0</flyway.version>
     <waffle.version>2.2.1</waffle.version>
     <jna.version>5.5.0</jna.version>
+    <hibernate.version>5.4.2.Final</hibernate.version>
+    <postgresql.version>42.3.7</postgresql.version>
+    <bouncycastle.version>1.69</bouncycastle.version>
+    <shiro.version>1.9.1</shiro.version>
+    <dom4j.version>2.1.3</dom4j.version>
+    <hydra.version>0.3.0</hydra.version>
+    <featureExtraction.version>3.2.0</featureExtraction.version>
+    <tomcat.embed.version>8.5.82</tomcat.embed.version>
 
-    <circe.version>1.9.0-SNAPSHOT</circe.version>
+    <commons-fileupload.version>1.3.3</commons-fileupload.version>
+
+    <circe.version>1.10.0</circe.version>
     <jersey.version>2.14</jersey.version>
-    <SqlRender.version>1.6.4-SNAPSHOT</SqlRender.version>
+    <SqlRender.version>1.10.0</SqlRender.version>
     <hive-jdbc.version>3.1.2</hive-jdbc.version>
     <pac4j.version>4.0.0</pac4j.version>
+    <jackson.version>2.12.7</jackson.version>
     <start-class>org.ohdsi.webapi.WebApi</start-class>
-    <skipUnitTests>true</skipUnitTests>
-    <skipITtests>true</skipITtests>
+    <skipUnitTests>false</skipUnitTests>
+    <skipITtests>false</skipITtests>
+    <miredot.phase>package</miredot.phase>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
 
     <!-- Primary DataSource -->
     <!-- default sql server - TODO How about making postgres the default (e.g. in line with open source tech)? -alexfranken -->
@@ -54,7 +69,7 @@
     <!-- Full Text Search With SOLR Settings -->
     <solr.endpoint></solr.endpoint>
     <solr.query.prefix>{!complexphrase inOrder=true}</solr.query.prefix>
-    <solr.version>8.3.1</solr.version>
+    <solr.version>8.11.2</solr.version>
     <!-- Heracles properties -->
     <heracles.smallcellcount>5</heracles.smallcellcount>
 
@@ -85,6 +100,7 @@
     <security.oid.apiSecret></security.oid.apiSecret>
     <security.oid.url></security.oid.url>
     <security.oid.logoutUrl></security.oid.logoutUrl>
+    <security.oid.extraScopes></security.oid.extraScopes>
     <security.oid.redirectUrl>http://localhost/index.html#/welcome/</security.oid.redirectUrl>
     <security.kerberos.spn></security.kerberos.spn>
     <security.kerberos.keytabPath></security.kerberos.keytabPath>
@@ -99,6 +115,8 @@
     <security.ldap.userMapping.middlenameAttr>initials</security.ldap.userMapping.middlenameAttr>
     <security.ldap.userMapping.lastnameAttr>sn</security.ldap.userMapping.lastnameAttr>
     <security.ldap.userMapping.usernameAttr>cn</security.ldap.userMapping.usernameAttr>
+    <security.ldap.userImport.usernameAttr>cn</security.ldap.userImport.usernameAttr>
+    <security.ldap.userImport.loginAttr>uid</security.ldap.userImport.loginAttr>
     <security.ldap.searchBase>CN=Users,DC=example,DC=org</security.ldap.searchBase>
     <security.ad.url></security.ad.url>
     <security.ad.searchBase>CN=Users,DC=example,DC=org</security.ad.searchBase>
@@ -115,6 +133,8 @@
     <security.ad.userMapping.middlenameAttr>initials</security.ad.userMapping.middlenameAttr>
     <security.ad.userMapping.lastnameAttr>sn</security.ad.userMapping.lastnameAttr>
     <security.ad.userMapping.usernameAttr>cn</security.ad.userMapping.usernameAttr>
+    <security.ad.userImport.loginAttr>sAMAccountName</security.ad.userImport.loginAttr>
+    <security.ad.userImport.usernameAttr>cn</security.ad.userImport.usernameAttr>
 
     <security.cas.loginUrl></security.cas.loginUrl>
     <security.cas.callbackUrl></security.cas.callbackUrl>
@@ -141,7 +161,7 @@
     <security.duration.increment>10</security.duration.increment>
 
     <security.saml.enabled>false</security.saml.enabled>
-    <security.saml.entityId>com:odysseusinc:atlas:sp</security.saml.entityId>
+    <security.saml.entityId></security.saml.entityId>
     <security.saml.idpMetadataLocation></security.saml.idpMetadataLocation>
     <security.saml.keyManager.keyStoreFile></security.saml.keyManager.keyStoreFile>
     <security.saml.keyManager.storePassword></security.saml.keyManager.storePassword>
@@ -150,6 +170,7 @@
     <security.saml.metadataLocation></security.saml.metadataLocation>
     <security.saml.callbackUrl></security.saml.callbackUrl>
     <security.saml.sloUrl></security.saml.sloUrl>
+    <security.saml.maximumAuthenticationLifetime>60</security.saml.maximumAuthenticationLifetime>
 
     <security.auth.windows.enabled>true</security.auth.windows.enabled>
     <security.auth.kerberos.enabled>true</security.auth.kerberos.enabled>
@@ -177,7 +198,7 @@
     <server.ssl.key-password></server.ssl.key-password>
     <server.servlet.context-path>/WebAPI</server.servlet.context-path>
 
-    <arachne.version>1.16.3-SNAPSHOT</arachne.version>
+    <arachne.version>1.17.3</arachne.version>
     <jersey-media-multipart.version>2.25.1</jersey-media-multipart.version>
     <execution.invalidation.period>600000</execution.invalidation.period>
     <execution.invalidation.maxage.hours>12</execution.invalidation.maxage.hours>
@@ -202,6 +223,9 @@
 
     <!-- Logging -->
     <spring.jpa.show-sql>false</spring.jpa.show-sql>
+    <spring.jpa.properties.hibernate.generate_statistics>false</spring.jpa.properties.hibernate.generate_statistics>
+    <spring.jpa.properties.hibernate.jdbc.batch_size>200</spring.jpa.properties.hibernate.jdbc.batch_size>
+    <spring.jpa.properties.hibernate.order_inserts>true</spring.jpa.properties.hibernate.order_inserts>
     <logging.level.root>info</logging.level.root>
     <logging.level.org.ohdsi>info</logging.level.org.ohdsi>
     <logging.level.org.springframework.orm>info</logging.level.org.springframework.orm>
@@ -222,25 +246,53 @@
      In case of "*" other values will be ignored -->
     <sensitiveinfo.analysis.extensions>txt</sensitiveinfo.analysis.extensions>
 
-    <hydra.externalPackage.prediction></hydra.externalPackage.prediction>
-    <hydra.externalPackage.estimation></hydra.externalPackage.estimation>
-
     <!-- Cache Config -->
-    <spring.cache.jcache.config>classpath:config/ehcache.xml</spring.cache.jcache.config>
     <cdm.result.cache.warming.enable>true</cdm.result.cache.warming.enable>
+    <!-- Enable or disable warming cdm cache by cron -->
+    <cdm.cache.cron.warming.enable>true</cdm.cache.cron.warming.enable>
+    <!-- cron expression to warm cdm cache -->
+    <!-- cron expression format (asterisk means 'every' - '*' in seconds means 'every second') -->
+    <!-- default value is '0 0 2 * * *' which means "at 2am every day" -->
+    <!-- ┌───────second (0-59)-->
+    <!-- │ ┌────── minute (0-59)-->
+    <!-- │ │ ┌────── hour (0-23)-->
+    <!-- │ │ │ ┌────── day of the month (1-31)-->
+    <!-- │ │ │ │ ┌────── month (1-12) -->
+    <!-- │ │ │ │ │ ┌────── day of the week (0-7)-->
+    <!-- * * * * * *-->
+    <cdm.cache.cron.expression>0 0 2 * * *</cdm.cache.cron.expression>
     <cache.generation.invalidAfterDays>30</cache.generation.invalidAfterDays>
     <cache.generation.cleanupInterval>3600000</cache.generation.cleanupInterval>
     <cache.generation.useAsync>false</cache.generation.useAsync>
-    <!-- Period in milliseconds between running checks to detect freshness of cached data -->
-    <cache.inspection.period>3600000</cache.inspection.period>
+    <!-- Number of spring jobs that will be used for caching -->
+    <cache.jobs.count>3</cache.jobs.count>
+    <!-- Achilles cache -->
+    <cache.achilles.usePersonCount>true</cache.achilles.usePersonCount>
 
     <!-- Build info -->
-    <buildinfo.atlas.milestone.id>22</buildinfo.atlas.milestone.id>
-    <buildinfo.webapi.milestone.id>25</buildinfo.webapi.milestone.id>
+    <buildinfo.atlas.milestone.id>42</buildinfo.atlas.milestone.id>
+    <buildinfo.webapi.milestone.id>43</buildinfo.webapi.milestone.id>
     <buildinfo.atlas.release.tag>*</buildinfo.atlas.release.tag>
     <buildinfo.webapi.release.tag>*</buildinfo.webapi.release.tag>
 
     <gis.enabled>false</gis.enabled>
+
+    <!-- I18n -->
+    <i18n.enabled>true</i18n.enabled>
+    <i18n.defaultLocale>en</i18n.defaultLocale>
+
+    <!-- Tags -->
+    <tag.enabled>true</tag.enabled>
+    <!-- Period between refreshes of materialized view with statistics -->
+    <!-- 10 minutes by default -->
+    <tag.refreshStat.period>600000</tag.refreshStat.period>
+
+    <!-- Versioning -->
+    <versioning.maxAttempt>10</versioning.maxAttempt>
+
+    <audit.trail.enabled>false</audit.trail.enabled>
+    <audit.trail.log.file>/tmp/atlas/audit/audit.log</audit.trail.log.file>
+    <audit.trail.log.extraFile>/tmp/atlas/audit/audit-extra.log</audit.trail.log.extraFile>
   </properties>
   <build>
     <finalName>WebAPI</finalName>
@@ -290,6 +342,11 @@
     </testResources>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.1</version>
+      </plugin>
+      <plugin>
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
         <version>4.0.0</version>
@@ -303,6 +360,7 @@
         </executions>
         <configuration>
           <generateGitPropertiesFile>false</generateGitPropertiesFile>
+          <failOnNoGitDirectory>false</failOnNoGitDirectory>
           <!-- only include properties to speed up plugin -->
           <!-- ref: https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/462 -->
           <includeOnlyProperties>
@@ -310,6 +368,26 @@
               <includeOnlyProperty>git.commit.id.abbrev</includeOnlyProperty>
           </includeOnlyProperties>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.gmaven</groupId>
+        <artifactId>gmaven-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>add-git-branch-info</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <source>
+                if (project.properties.getProperty("git.branch") == null) project.properties.setProperty("git.branch", "*");
+                if (project.properties.getProperty("git.commit.id.abbrev") == null) project.properties.setProperty("git.commit.id.abbrev", "*");
+              </source>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -352,8 +430,6 @@
         <version>3.1</version>
         <inherited>true</inherited>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
           <compilerArgs>
             <!-- Prevents recompilation due to missing package-info.class, see MCOMPILER-205 -->
             <arg>-Xpkginfo:always</arg>
@@ -363,7 +439,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>2.6</version>
+        <version>3.3.1</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <attachClasses>true</attachClasses>
@@ -396,7 +472,7 @@
         <version>2.2</version>
         <executions>
           <execution>
-            <phase>package</phase>
+            <phase>${miredot.phase}</phase>
             <goals>
               <goal>restdoc</goal>
             </goals>
@@ -440,62 +516,46 @@
 
   <repositories>
     <repository>
-      <id>central</id>
-      <url>https://repo.maven.apache.org/maven2</url>
-    </repository>
-    <repository>
       <id>ohdsi</id>
       <name>repo.ohdsi.org</name>
-      <url>http://repo.ohdsi.org:8085/nexus/content/repositories/releases</url>
-    </repository>
-    <repository>
-      <id>ohdsi.thirdparty</id>
-      <name>repo.ohdsi.org</name>
-      <url>http://repo.ohdsi.org:8085/nexus/content/repositories/thirdparty</url>
-    </repository>
-    <repository>
-      <id>ohdsi.snapshots</id>
-      <name>repo.ohdsi.org-snapshots</name>
-      <url>http://repo.ohdsi.org:8085/nexus/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>springsource.releases</id>
-      <name>SpringSource GA Repository</name>
-      <url>https://repo.springsource.org/release</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>redshift</id>
-      <url>http://redshift-maven-repository.s3-website-us-east-1.amazonaws.com/release</url>
-    </repository>
-    <repository>
-      <id>miredot</id>
-      <name>Miredot Releases</name>
-      <url>http://nexus.qmino.com/content/repositories/miredot</url>
+      <url>https://repo.ohdsi.org/nexus/content/groups/public</url>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
-      <id>miredot</id>
-      <name>MireDot Releases</name>
-      <url>http://nexus.qmino.com/content/repositories/miredot</url>
+      <id>central</id>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>ohdsi</id>
+      <name>repo.ohdsi.org</name>
+      <url>https://repo.ohdsi.org/nexus/content/groups/public</url>
     </pluginRepository>
   </pluginRepositories>
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-web</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
       <dependency>
         <!-- Import dependency management from Spring Boot -->
         <groupId>org.springframework.boot</groupId>
@@ -506,12 +566,37 @@
       </dependency>
       <dependency>
         <groupId>com.amazon.redshift</groupId>
-        <artifactId>redshift-jdbc4-no-awssdk</artifactId>
+        <artifactId>redshift-jdbc42-no-awssdk</artifactId>
         <version>1.2.10.1009</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
     <!-- <dependency> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-starter-actuator</artifactId>
     <version>${spring.boot.version}</version> </dependency> -->
     <dependency>
@@ -524,9 +609,30 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- It is overriding a transitive dependency from the dependency above -->
+    <!-- After migrating to Spring Boot 2.x we should get rid of it -->
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.32</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-validator</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-log4j2</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -537,40 +643,102 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-batch</artifactId>
     </dependency>
+
+    <!-- We are intentionally overriding the Tomcat version from Spring Boot 1.5.22.RELEASE -->
+    <!-- and assuming tomcat-jdbc.jar will be in the Tomcat installation folder (\apache-tomcat-8.5.xxx\lib). -->
+    <!-- WebAPI.war.original should not contain overridden libraries -->
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-el</artifactId>
+      <version>${tomcat.embed.version}</version>
+    </dependency>
+
+    <!-- It is overriding a transitive dependency from the dependency above -->
+    <!-- After migrating to Spring Boot 2.x we should get rid of it -->
+    <dependency>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <artifactId>xstream</artifactId>
+      <version>1.4.19</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-jdbc</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-juli</artifactId>
+      <version>${tomcat.embed.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jersey</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-validator</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-cache</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>javax.cache</groupId>
-			<artifactId>cache-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.ehcache</groupId>
-			<artifactId>ehcache</artifactId>
-            <version>3.8.1</version>
-		</dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-cache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.cache</groupId>
+      <artifactId>cache-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>3.8.1</version>
+    </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
+      <version>${hibernate.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.dom4j</groupId>
+          <artifactId>dom4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-validator</artifactId>
       <version>5.4.2.Final</version>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-entitymanager</artifactId>
-      <version>5.4.2.Final</version>
+      <version>${hibernate.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.dom4j</groupId>
+          <artifactId>dom4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -591,7 +759,7 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.6</version>
+      <version>2.7</version>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.security</groupId>
@@ -610,6 +778,14 @@
             </exclusion>
         </exclusions>
     </dependency>
+    <!-- It is overriding a transitive dependency from the dependency above -->
+    <!-- After migrating to Spring Boot 2.x we should get rid of it -->
+    <!-- It is currently inefficient as com.nimbusds:nimbus-jose-jwt has hard bounds [1.3.1,2.3] -->
+    <dependency>
+      <groupId>net.minidev</groupId>
+      <artifactId>json-smart</artifactId>
+      <version>2.4.8</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
@@ -623,7 +799,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.5.10</version>
+      <version>4.5.13</version>
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
@@ -643,18 +819,43 @@
           <artifactId>commons-dbcp</artifactId>
           <groupId>commons-dbcp</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
+
+    <!-- overriding commons-fileupload version from the plug-in above -->
+    <dependency>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+      <version>${commons-fileupload.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>9.4-1201-jdbc41</version>
+      <version>${postgresql.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
       <artifactId>mssql-jdbc</artifactId>
-      <version>7.0.0.jre8</version>
+      <version>9.2.1.jre8</version>
+    </dependency>
+    <dependency>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>msal4j</artifactId>
+      <version>1.9.0</version>
     </dependency>
     <dependency>
       <groupId>com.opencsv</groupId>
@@ -681,17 +882,17 @@
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-core</artifactId>
-      <version>1.5.1</version>
+      <version>${shiro.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
-      <version>1.5.1</version>
+      <version>${shiro.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-spring</artifactId>
-      <version>1.5.1</version>
+      <version>${shiro.version}</version>
     </dependency>
     <dependency>
       <groupId>com.github.waffle</groupId>
@@ -726,22 +927,40 @@
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt</artifactId>
-      <version>0.6.0</version>
+      <version>0.9.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.buji</groupId>
       <artifactId>buji-pac4j</artifactId>
-      <version>5.0.0</version>
+      <version>5.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.pac4j</groupId>
       <artifactId>pac4j-oauth</artifactId>
       <version>${pac4j.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.pac4j</groupId>
       <artifactId>pac4j-oidc</artifactId>
       <version>${pac4j.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.pac4j</groupId>
@@ -752,11 +971,21 @@
       <groupId>org.ohdsi</groupId>
       <artifactId>circe</artifactId>
       <version>${circe.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.ohdsi</groupId>
       <artifactId>hydra</artifactId>
-      <version>0.0.11</version>
+      <version>${hydra.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.ohdsi</groupId>
@@ -767,12 +996,12 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20170516</version>
+      <version>20180130</version>
     </dependency>
     <dependency>
       <groupId>org.ohdsi</groupId>
       <artifactId>featureExtraction</artifactId>
-      <version>2.2.4</version>
+      <version>${featureExtraction.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.ohdsi.sql</groupId>
@@ -782,7 +1011,7 @@
     </dependency>
     <dependency>
       <groupId>com.amazon.redshift</groupId>
-      <artifactId>redshift-jdbc4-no-awssdk</artifactId>
+      <artifactId>redshift-jdbc42-no-awssdk</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
@@ -797,6 +1026,7 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+      <version>2.8.9</version>
     </dependency>
     <dependency>
       <groupId>org.jasypt</groupId>
@@ -824,7 +1054,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
-      <version>1.59</version>
+      <version>${bouncycastle.version}</version>
     </dependency>
     <dependency>
       <groupId>com.odysseusinc.arachne</groupId>
@@ -835,16 +1065,42 @@
       <groupId>com.odysseusinc.arachne</groupId>
       <artifactId>execution-engine-commons</artifactId>
       <version>${arachne.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.odysseusinc</groupId>
       <artifactId>logging</artifactId>
       <version>${arachne.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>org.hibernate</artifactId>
+          <groupId>hibernate-validator</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.odysseusinc.arachne</groupId>
       <artifactId>arachne-scheduler</artifactId>
       <version>${arachne.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>org.hibernate</artifactId>
+          <groupId>hibernate-validator</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
@@ -870,17 +1126,37 @@
     <dependency>
       <groupId>org.ohdsi</groupId>
       <artifactId>standardized-analysis-specs</artifactId>
-      <version>1.2.1-SNAPSHOT</version>
+      <version>1.4.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.ohdsi</groupId>
       <artifactId>standardized-analysis-utils</artifactId>
-      <version>1.2.1-SNAPSHOT</version>
+      <version>1.3.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.ohdsi</groupId>
       <artifactId>SkeletonCohortCharacterization</artifactId>
-      <version>1.2.0-SNAPSHOT</version>
+      <version>1.2.1</version>
       <exclusions>
         <exclusion>
           <groupId>org.ohdsi</groupId>
@@ -898,10 +1174,6 @@
           <groupId>org.ohdsi</groupId>
           <artifactId>featureExtraction</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>org.ohdsi.sql</groupId>
-          <artifactId>SqlRender</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -913,17 +1185,17 @@
       <groupId>org.pac4j</groupId>
       <artifactId>pac4j-cas</artifactId>
       <version>${pac4j.version}</version>
-    </dependency>
-    <dependency>
+      <exclusions>
+        <exclusion>
       <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-      <version>2.8.7</version>
-      <type>jar</type>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
         <groupId>org.apache.solr</groupId>
         <artifactId>solr-solrj</artifactId>
-        <version>8.3.1</version>
+      <version>${solr.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
@@ -959,9 +1231,14 @@
         <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
+      <groupId>org.dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <version>${dom4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudbees</groupId>
+      <artifactId>syslog-java-client</artifactId>
+      <version>1.1.7</version>
     </dependency>
   </dependencies>
   <profiles>
@@ -993,9 +1270,9 @@
       </properties>
       <dependencies>
         <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc6</artifactId>
-          <version>12.1.0.1</version>
+          <groupId>com.oracle.database.jdbc</groupId>
+          <artifactId>ojdbc8</artifactId>
+          <version>19.8.0.0</version>
         </dependency>
       </dependencies>
     </profile>
@@ -1024,6 +1301,48 @@
         <security.db.datasource.authenticationQuery>select password from ${security.db.datasource.schema}.users_data where \
           lower(email) = lower(?)</security.db.datasource.authenticationQuery>
       </properties>
+    </profile>
+    <profile>
+      <id>webapi-docker</id>
+      <properties>
+        <git.branch>unknown</git.branch>
+        <git.commit.id.abbrev>unknown</git.commit.id.abbrev>
+        <maven.gitcommitid.skip>true</maven.gitcommitid.skip>
+        <miredot.phase>none</miredot.phase>
+        <skipTests>true</skipTests>
+        <datasource.driverClassName>org.postgresql.Driver</datasource.driverClassName>
+        <datasource.url>jdbc:postgresql://54.209.111.128:5432/vocabularyv5</datasource.url>
+        <datasource.username>USER</datasource.username>
+        <datasource.password>PASS</datasource.password>
+        <datasource.dialect>postgresql</datasource.dialect>
+        <datasource.ohdsi.schema>ohdsi</datasource.ohdsi.schema>
+        <flyway.datasource.driverClassName>${datasource.driverClassName}</flyway.datasource.driverClassName>
+        <flyway.datasource.url>${datasource.url}</flyway.datasource.url>
+        <flyway.datasource.username>userWithWritesToOhdsiSchema</flyway.datasource.username>
+        <flyway.datasource.password>PASS</flyway.datasource.password>
+        <flyway.schemas>${datasource.ohdsi.schema}</flyway.schemas>
+        <flyway.placeholders.ohdsiSchema>${datasource.ohdsi.schema}</flyway.placeholders.ohdsiSchema>
+        <flyway.locations>classpath:db/migration/postgresql</flyway.locations>
+        <spring.batch.repository.tableprefix>${datasource.ohdsi.schema}.BATCH_</spring.batch.repository.tableprefix>
+        <hibernate.dialect>org.hibernate.dialect.PostgreSQL9Dialect</hibernate.dialect>
+        <security.db.datasource.url>${datasource.url}</security.db.datasource.url>
+        <security.db.datasource.driverClassName>${datasource.driverClassName}</security.db.datasource.driverClassName>
+        <security.db.datasource.username>${datasource.username}</security.db.datasource.username>
+        <security.db.datasource.password>${datasource.password}</security.db.datasource.password>
+        <security.db.datasource.authenticationQuery>select password from ${security.db.datasource.schema}.users_data where \
+          lower(email) = lower(?)</security.db.datasource.authenticationQuery>
+      </properties>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+          <id>ohdsi</id>
+          <name>repo.ohdsi.org</name>
+          <url>http://repo.ohdsi.org:8085/nexus/content/groups/public</url>
+        </repository>
+      </repositories>
     </profile>
     <profile>
       <id>webapi-mssql</id>
@@ -1131,6 +1450,46 @@
       </build>
     </profile>
     <profile>
+      <id>webapi-spark</id>
+      <properties>
+        <spark.enabled>true</spark.enabled>
+        <!-- Spark JDBC driver path -->
+        <spark.classpath>${basedir}/src/main/extras/spark</spark.classpath>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>com.simba</groupId>
+          <artifactId>spark</artifactId>
+          <version>2.6.22.1040</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-install-plugin</artifactId>
+            <version>2.5.2</version>
+            <executions>
+              <execution>
+                <id>spark-jdbc</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>install-file</goal>
+                </goals>
+                <configuration>
+                  <groupId>com.simba</groupId>
+                  <artifactId>spark</artifactId>
+                  <version>2.6.22.1040</version>
+                  <packaging>jar</packaging>
+                  <file>${spark.classpath}/spark-2.6.22.1040.jar</file>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>webapi-bigquery</id>
       <properties>
         <bigquery.enabled>true</bigquery.enabled>
@@ -1172,6 +1531,36 @@
           <groupId>com.google.cloud</groupId>
           <artifactId>google-cloud-bigquerystorage</artifactId>
           <version>0.101.0-beta</version>
+        </dependency>
+        <dependency>
+          <groupId>com.google.auth</groupId>
+          <artifactId>google-auth-library-oauth2-http</artifactId>
+          <version>0.16.2</version>
+        </dependency>
+        <dependency>
+          <groupId>com.google.auth</groupId>
+          <artifactId>google-auth-library-credentials</artifactId>
+          <version>0.16.2</version>
+        </dependency>
+        <dependency>
+          <groupId>com.google.api</groupId>
+          <artifactId>gax</artifactId>
+          <version>1.47.0</version>
+        </dependency>
+        <dependency>
+          <groupId>com.google.api</groupId>
+          <artifactId>gax-grpc</artifactId>
+          <version>1.47.0</version>
+        </dependency>
+        <dependency>
+          <groupId>com.google.api.grpc</groupId>
+          <artifactId>proto-google-cloud-bigquerystorage-v1beta1</artifactId>
+          <version>0.66.0</version>
+        </dependency>
+        <dependency>
+          <groupId>io.opencensus</groupId>
+          <artifactId>opencensus-contrib-http-util</artifactId>
+          <version>0.18.0</version>
         </dependency>
       </dependencies>
       <build>
@@ -1293,6 +1682,10 @@
           <version>${hive-jdbc.version}</version>
           <exclusions>
             <exclusion>
+              <groupId>tomcat</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+            <exclusion>
               <groupId>org.apache.tomcat</groupId>
               <artifactId>*</artifactId>
             </exclusion>
@@ -1307,6 +1700,10 @@
             <exclusion>
               <artifactId>log4j</artifactId>
               <groupId>log4j</groupId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.logging.log4j</groupId>
+              <artifactId>*</artifactId>
             </exclusion>
             <exclusion>
               <artifactId>servlet-api</artifactId>
@@ -1344,6 +1741,18 @@
               <groupId>com.tdunning</groupId>
               <artifactId>json</artifactId>
             </exclusion>
+            <exclusion>
+              <groupId>com.fasterxml.jackson.core</groupId>
+              <artifactId>jackson-databind</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.fasterxml.jackson.core</groupId>
+              <artifactId>jackson-annotations</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.fasterxml.jackson.core</groupId>
+              <artifactId>jackson-core</artifactId>
+            </exclusion>
           </exclusions>
         </dependency>
         <dependency>
@@ -1374,19 +1783,65 @@
         </dependency>
       </dependencies>
     </profile>
-      <profile>
-          <id>webapi-gis</id>
-          <properties>
-              <atlasgis.version>1.0.0</atlasgis.version>
-              <gis.enabled>true</gis.enabled>
-          </properties>
-          <dependencies>
-              <dependency>
-                  <groupId>org.ohdsi</groupId>
-                  <artifactId>atlasgis</artifactId>
-                  <version>${atlasgis.version}</version>
-              </dependency>
-          </dependencies>
-      </profile>
+    <profile>
+      <id>webapi-redshift</id>
+      <properties>
+        <!-- Redshift driver path -->
+        <redshift.classpath>...path/to/redshift/jdbc/drivers...</redshift.classpath>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-core</artifactId>
+          <version>1.11.118</version>
+        </dependency>
+
+        <dependency>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-redshift</artifactId>
+          <version>1.11.118</version>
+        </dependency>
+
+        <dependency>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-sts</artifactId>
+          <version>1.11.118</version>
+        </dependency>
+
+        <dependency>
+          <groupId>org.antlr</groupId>
+          <artifactId>antlr4-runtime</artifactId>
+          <version>4.8-1</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>webapi-snowflake</id>
+      <properties>
+        <snowflake.enabled>true</snowflake.enabled>
+        <snowflake.driver.version>3.13.22</snowflake.driver.version>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>net.snowflake</groupId>
+          <artifactId>snowflake-jdbc</artifactId>
+          <version>${snowflake.driver.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>webapi-gis</id>
+      <properties>
+        <atlasgis.version>1.0.1</atlasgis.version>
+        <gis.enabled>true</gis.enabled>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.ohdsi</groupId>
+          <artifactId>atlasgis</artifactId>
+          <version>${atlasgis.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 </project>

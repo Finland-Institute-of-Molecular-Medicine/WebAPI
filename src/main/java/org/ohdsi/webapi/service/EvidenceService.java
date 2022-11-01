@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 
@@ -117,22 +118,28 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
         @JsonProperty("targetDomain")
         public String targetDomain = "CONDITION";
         @JsonProperty("drugConceptIds")
-        public String[] drugConceptIds;
+        public int[] drugConceptIds;
         @JsonProperty("conditionConceptIds")
-        public String[] conditionConceptIds;
+        public int[] conditionConceptIds;
         @JsonProperty("sourceIds")
         public String[] sourceIds;
 
         public String getDrugConceptIds() {
-            return StringUtils.join(drugConceptIds, ",");
+            return StringUtils.join(drugConceptIds, ',');
         }
 
         public String getConditionConceptIds() {
-            return StringUtils.join(conditionConceptIds, ",");
+            return StringUtils.join(conditionConceptIds, ',');
         }
 
         public String getSourceIds() {
-            return "'" + StringUtils.join(sourceIds, "','") + "'";
+            if (sourceIds != null) {
+                List<String> ids = Arrays.stream(sourceIds)
+                        .map(sourceId -> sourceId.replaceAll("(\"|')", ""))
+                        .collect(Collectors.toList());
+                return "'" + StringUtils.join(ids, "','") + "'";
+            }
+            return "''";
         }
     }
 
@@ -141,6 +148,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * the cohort_study table for the selected cohortId in the WebAPI DB
      *
      * @summary Find studies for a cohort - will be depreciated
+     * @deprecated
      * @param cohortId The cohort Id
      * @return A list of studies related to the cohort
      */
@@ -156,6 +164,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * the COHORT_CONCEPT_MAP for the selected cohortId in the WebAPI DB
      *
      * @summary Find cohorts for a concept - will be depreciated
+     * @deprecated
      * @param conceptId The concept Id of interest
      * @return A list of cohorts for the specified conceptId
      */
@@ -173,6 +182,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * release.
      *
      * @summary Find a custom concept mapping - will be depreciated
+     * @deprecated
      * @param conceptId The conceptId of interest
      * @return A list of concepts based on the conceptId of interest
      */
@@ -191,6 +201,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * OMOP vocabulary
      *
      * @summary Find a drug label - will be depreciated
+     * @deprecated
      * @param setid The drug label setId
      * @return The set of drug labels that match the setId specified.
      */
@@ -206,6 +217,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * the DRUG_LABELS.search_name for the searchTerm
      *
      * @summary Search for a drug label - will be depreciated
+     * @deprecated
      * @param searchTerm The search term
      * @return A list of drug labels matching the search term
      */
@@ -428,6 +440,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * Originally provided a roll up of evidence from LAERTES
      *
      * @summary Depreciated
+     * @deprecated
      * @param sourceKey The source key of the CEM daimon
      * @param id The RxNorm drug conceptId
      * @param filter Specified the type of rollup level (ingredient, clinical
@@ -490,6 +503,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * Originally provided an evidence summary from LAERTES
      *
      * @summary Depreciated
+     * @deprecated
      * @param sourceKey The source key of the CEM daimon
      * @param conditionID The condition conceptId
      * @param drugID The drug conceptId
@@ -509,6 +523,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * Originally provided an evidence details from LAERTES
      *
      * @summary Depreciated
+     * @deprecated
      * @param sourceKey The source key of the CEM daimon
      * @param conditionID The condition conceptId
      * @param drugID The drug conceptId
@@ -534,6 +549,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * Originally provided an summary from spontaneous reports from LAERTES
      *
      * @summary Depreciated
+     * @deprecated
      * @param sourceKey The source key of the CEM daimon
      * @param search The search term
      * @return A list of spontaneous report summaries
@@ -554,6 +570,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * Originally provided an evidence search from LAERTES
      *
      * @summary Depreciated
+     * @deprecated
      * @param sourceKey The source key of the CEM daimon
      * @param search The search term
      * @return A list of evidence
@@ -574,6 +591,7 @@ public class EvidenceService extends AbstractDaoService implements GeneratesNoti
      * Originally provided a label evidence search from LAERTES
      *
      * @summary Depreciated
+     * @deprecated
      * @param sourceKey The source key of the CEM daimon
      * @param search The search term
      * @return A list of evidence

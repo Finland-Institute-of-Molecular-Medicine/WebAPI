@@ -135,8 +135,6 @@ public class PermissionManager {
     });
   }
 
-  // In case of unauthorized access there is no need to connect to database and create transaction
-  @Transactional(propagation = Propagation.NEVER)
   public void clearAuthorizationInfoCache() {
     this.authorizationInfoCache.set(new ConcurrentHashMap<>());
   }
@@ -147,9 +145,12 @@ public class PermissionManager {
     
     UserEntity user = userRepository.findByLogin(login);
     if (user != null) {
-      String currentName = name != null ? name : login;
-      if(!currentName.equals(user.getName())) {
-        user.setName(currentName);
+      if (user.getName() == null) {
+        String nameToSet = name;
+        if (name == null) {
+          nameToSet = login;
+        }
+        user.setName(nameToSet);
         user = userRepository.save(user);
       }
       return user;

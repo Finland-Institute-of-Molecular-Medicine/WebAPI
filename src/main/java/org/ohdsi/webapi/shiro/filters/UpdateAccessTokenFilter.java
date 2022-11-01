@@ -1,5 +1,6 @@
 package org.ohdsi.webapi.shiro.filters;
 
+import static org.ohdsi.webapi.shiro.management.AtlasSecurity.AUTH_CLIENT_ATTRIBUTE;
 import static org.ohdsi.webapi.shiro.management.AtlasSecurity.PERMISSIONS_ATTRIBUTE;
 import static org.ohdsi.webapi.shiro.management.AtlasSecurity.TOKEN_ATTRIBUTE;
 
@@ -10,6 +11,7 @@ import java.security.Principal;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -23,10 +25,12 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.web.servlet.AdviceFilter;
 import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.apache.shiro.web.util.WebUtils;
+import org.ohdsi.webapi.Constants;
 import org.ohdsi.webapi.shiro.Entities.UserPrincipal;
 import org.ohdsi.webapi.shiro.PermissionManager;
 import org.ohdsi.webapi.shiro.TokenManager;
 import org.ohdsi.webapi.util.UserUtils;
+import org.pac4j.core.profile.CommonProfile;
 
 /**
  *
@@ -92,6 +96,12 @@ public class UpdateAccessTokenFilter extends AdviceFilter {
         httpResponse.sendRedirect(oauthFailURI.toString());
         return false;
       }
+
+      CommonProfile profile = (((Pac4jPrincipal) principal).getProfile());
+      if (Objects.nonNull(profile)) {
+        String clientName = profile.getClientName();
+        request.setAttribute(AUTH_CLIENT_ATTRIBUTE, clientName);
+      }
     } else     if (principal instanceof Principal) {
       login = ((Principal) principal).getName();
     } else if (principal instanceof UserPrincipal){
@@ -122,8 +132,16 @@ public class UpdateAccessTokenFilter extends AdviceFilter {
         throw new Exception(e);
       }
 
+      String sessionId = (String) request.getAttribute(Constants.SESSION_ID);
+      if (sessionId == null) {
+        final String token = TokenManager.extractToken(request);
+        if (token != null) {
+          sessionId = (String) TokenManager.getBody(token).get(Constants.SESSION_ID);
+        }
+      }
+
       Date expiration = this.getExpirationDate(this.tokenExpirationIntervalInSeconds);
-      jwt = TokenManager.createJsonWebToken(login, expiration);
+      jwt = TokenManager.createJsonWebToken(login, sessionId, expiration);
     }
 
     request.setAttribute(TOKEN_ATTRIBUTE, jwt);

@@ -15,11 +15,13 @@ import org.ohdsi.webapi.estimation.dto.EstimationShortDTO;
 import org.ohdsi.webapi.estimation.specification.EstimationAnalysisImpl;
 import org.ohdsi.webapi.executionengine.service.ScriptExecutionService;
 import org.ohdsi.webapi.job.JobExecutionResource;
+import org.ohdsi.webapi.security.PermissionService;
 import org.ohdsi.webapi.source.Source;
 import org.ohdsi.webapi.source.SourceService;
 import org.ohdsi.webapi.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Controller;
 
@@ -47,6 +49,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+ /**
+  * Provides REST services for working with
+  * population-level estimation designs.
+  * 
+  * @summary Estimation
+  */
 @Controller
 @Path("/estimation/")
 public class EstimationController {
@@ -61,13 +69,15 @@ public class EstimationController {
   private final ConverterUtils converterUtils;
   private final ScriptExecutionService executionService;
   private EstimationChecker checker;
+  private PermissionService permissionService;
 
   public EstimationController(EstimationService service,
                               GenericConversionService conversionService,
                               CommonGenerationSensitiveInfoService sensitiveInfoService,
                               SourceService sourceService,
                               ConverterUtils converterUtils,
-                              ScriptExecutionService executionService, EstimationChecker checker) {
+                              ScriptExecutionService executionService, EstimationChecker checker,
+                              PermissionService permissionService) {
     this.service = service;
     this.conversionService = conversionService;
     this.sensitiveInfoService = sensitiveInfoService;
@@ -75,18 +85,36 @@ public class EstimationController {
     this.converterUtils = converterUtils;
     this.executionService = executionService;
     this.checker = checker;
+    this.permissionService = permissionService;
   }
 
+  /**
+   * Used to retrieve all estimation designs in the WebAPI database.
+   * @summary Get all estimation designs
+   * @return A list of all estimation design names and identifiers
+   */
   @GET
   @Path("/")
   @Produces(MediaType.APPLICATION_JSON)
   public List<EstimationShortDTO> getAnalysisList() {
 
     return StreamSupport.stream(service.getAnalysisList().spliterator(), false)
-            .map(analysis -> conversionService.convert(analysis, EstimationShortDTO.class))
+            .map(analysis -> {
+              EstimationShortDTO dto = conversionService.convert(analysis, EstimationShortDTO.class);
+              permissionService.fillWriteAccess(analysis, dto);
+              return dto;
+            })
             .collect(Collectors.toList());
   }
 
+  /**
+   * Check to see if an estimation design exists by name
+   * 
+   * @summary Estimation design exists by name
+   * @param id The estimation design id
+   * @param name The estimation design name
+   * @return 1 if an estimation design with the given name and id exist in WebAPI and 0 otherwise
+   */
   @GET
   @Path("/{id}/exists")
   @Produces(MediaType.APPLICATION_JSON)
@@ -95,6 +123,13 @@ public class EstimationController {
     return service.getCountEstimationWithSameName(id, name);
   }
 
+  /**
+   * Used to delete a selected estimation design by ID.
+   * 
+   * @summary Delete an estimation designs
+   * @param id The identifier of the estimation design
+   * @return None
+   */
   @DELETE
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/{id}")
@@ -103,6 +138,13 @@ public class EstimationController {
     service.delete(id);
   }
 
+  /**
+   * Used to add a new estimation design to the database
+   * 
+   * @summary Save a new estimation design
+   * @param est The estimation design object
+   * @return An EstimationDTO which contains the identifier assigned to the estimation design.
+   */
   @POST
   @Path("/")
   @Produces(MediaType.APPLICATION_JSON)
@@ -113,6 +155,14 @@ public class EstimationController {
     return reloadAndConvert(estWithId.getId());
   }
 
+  /**
+   * Used to save changes to an existing estimation design by ID.
+   * 
+   * @summary Update an estimation design
+   * @param id The ID of the estimation design
+   * @param est The estimation design object
+   * @return An EstimationDTO which contains the updated estimation design.
+   */
   @PUT
   @Path("{id}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -123,6 +173,13 @@ public class EstimationController {
     return reloadAndConvert(id);
   }
 
+  /**
+   * Used to create a copy of an existing existing estimation design by ID.
+   * 
+   * @summary Copy an estimation design
+   * @param id The ID of the estimation design
+   * @return An EstimationDTO which contains the newly copied estimation design.
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/{id}/copy")
@@ -133,6 +190,13 @@ public class EstimationController {
     return reloadAndConvert(est.getId());
   }
 
+  /**
+   * Used to retrieve an existing existing estimation design by ID.
+   * 
+   * @summary Get an estimation design by ID
+   * @param id The ID of the estimation design
+   * @return An EstimationDTO which contains the estimation design.
+   */
   @GET
   @Path("{id}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -143,6 +207,15 @@ public class EstimationController {
     return conversionService.convert(est, EstimationDTO.class);
   }
 
+  /**
+   * Used to export an existing existing estimation design by ID. This is used
+   * when transferring the object outside of WebAPI.
+   * 
+   * @summary Export an estimation design
+   * @param id The ID of the estimation design
+   * @return An EstimationAnalysisImpl which resolves all references to cohorts, concept sets, etc
+   * and contains the full estimation design for export.
+   */
   @GET
   @Path("{id}/export")
   @Produces(MediaType.APPLICATION_JSON)
@@ -153,9 +226,12 @@ public class EstimationController {
     ExceptionUtils.throwNotFoundExceptionIfNull(estimation, String.format(NO_ESTIMATION_MESSAGE, id));
     return service.exportAnalysis(estimation);
   }
+  
   /**
-   * Import the full estimation specification
-   * @param analysis The full estimation specification
+   * Import a full estimation design
+   * 
+   * @summary Import an estimation design
+   * @param analysis The full estimation design
    * @return The newly imported estimation
    */
   @POST
@@ -175,6 +251,8 @@ public class EstimationController {
 
   /**
    * Download an R package to execute the estimation study
+   * 
+   * @summary Download an estimation R package
    * @param id The id for the estimation study
    * @param packageName The R package name for the study
    * @return Binary zip file containing the full R package
@@ -201,6 +279,16 @@ public class EstimationController {
             .build();
   }
 
+  /**
+   * Generate an estimation design by ID on a specific sourceKey. Please note 
+   * this requires configuration of the Arachne Execution Engine.
+   * 
+   * @summary Generate an estimation on a selected source
+   * @param id The id for the estimation study
+   * @param sourceKey The CDM source key
+   * @return JobExecutionResource The job information
+   * @throws IOException
+   */
   @POST
   @Path("{id}/generation/{sourceKey}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -218,6 +306,13 @@ public class EstimationController {
     return service.runGeneration(analysis, sourceKey);
   }
 
+  /**
+   * Get a list of generations for the selected estimation design. 
+   * 
+   * @summary Get generations for an estimation design
+   * @param id The id for the estimation design
+   * @return List<ExecutionBasedGenerationDTO> The list of generations
+   */
   @GET
   @Path("{id}/generation")
   @Produces(MediaType.APPLICATION_JSON)
@@ -228,6 +323,13 @@ public class EstimationController {
             info -> Collections.singletonMap(Constants.Variables.SOURCE, sourcesMap.get(info.getSourceKey())));
   }
 
+  /**
+   * Get an estimation design generation info.
+   * 
+   * @summary Get estimation design generation info
+   * @param generationId The id for the estimation generation
+   * @return ExecutionBasedGenerationDTO The generation information
+   */
   @GET
   @Path("/generation/{generationId}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -239,6 +341,13 @@ public class EstimationController {
             Collections.singletonMap(Constants.Variables.SOURCE, generationEntity.getSource()));
   }
 
+  /**
+   * Get an estimation design generation result.
+   * 
+   * @summary Get estimation design generation result
+   * @param generationId The id for the estimation generation
+   * @return Response Streams a binary ZIP file with the results
+   */
   @GET
   @Path("/generation/{generationId}/result")
   @Produces("application/zip")
@@ -257,6 +366,14 @@ public class EstimationController {
         return conversionService.convert(estimation, EstimationDTO.class);
     }
 
+  /**
+   * Performs a series of checks of the estimation design to ensure it will
+   * properly execute.
+   * 
+   * @summary Check an estimation design for logic flaws
+   * @param estimationDTO The estimation design
+   * @return CheckResult The results of performing all checks
+   */
     @POST
     @Path("/check")
     @Produces(MediaType.APPLICATION_JSON)
