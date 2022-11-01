@@ -408,7 +408,7 @@ public class CohortDefinitionService extends AbstractDaoService implements HasTa
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public List<CohortMetadataDTO> getCohortDefinitionList() {
+	public List<CohortMetadataDTO> getCohortDefinitionList(@QueryParam("q") String query) {
 		List<CohortDefinition> definitions;
 
 		if(query==null) {
