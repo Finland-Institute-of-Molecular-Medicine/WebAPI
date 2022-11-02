@@ -43,6 +43,11 @@ FROM index.docker.io/library/eclipse-temurin:8-jre
 
 MAINTAINER Lee Evans - www.ltscomputingllc.com
 
+# add curl
+RUN apt-get update && \
+    apt-get install -y curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Any Java options to pass along, e.g. memory, garbage collection, etc.
 ENV JAVA_OPTS=""
 # Additional classpath parameters to pass along. If provided, start with colon ":"
