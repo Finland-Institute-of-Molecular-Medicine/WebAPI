@@ -113,7 +113,7 @@ WITH counts AS (
   left join @vocab_schema.concept_ancestor ca on c.concept_id = cast(ca.ancestor_concept_id as varchar(50))
 )
 INSERT INTO @results_schema.achilles_result_concept_count (concept_id, record_count, descendant_record_count, person_count, descendant_person_count)
-SELECT
+SELECT DISTINCT
     cast(concepts.ancestor_id as int) concept_id,
     coalesce(max(c1.agg_count_value), 0) record_count,
     coalesce(sum(c2.agg_count_value), 0) descendant_record_count,
