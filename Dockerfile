@@ -31,7 +31,7 @@ RUN mvn package ${MAVEN_PARAMS} \
     && rm WebAPI.war
 
 # BigQuery JDBC Driver
-ARG SIMBA_JDBC_VERSION=1.3.0.1001
+ARG SIMBA_JDBC_VERSION=1.6.1.1002
 
 RUN curl -Lo /tmp/SimbaJDBC4BQ.zip \
     https://storage.googleapis.com/simba-bq-release/jdbc/SimbaJDBCDriverforGoogleBigQuery42_${SIMBA_JDBC_VERSION}.zip && \
